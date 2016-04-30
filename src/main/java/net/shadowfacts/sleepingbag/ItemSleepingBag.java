@@ -9,13 +9,18 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.S0APacketUseBed;
+import net.minecraft.network.play.server.SPacketUseBed;
 import net.minecraft.util.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
@@ -35,34 +40,33 @@ public class ItemSleepingBag extends ItemArmor {
 	private static final String TAG_SLEEPING = "Sleeping";
 	private static final String TAG_SLOT = "Slot";
 
-	private static final int CHESTPIECE_TYPE = 1;
 	private static final int CHESTPIECE_SLOT = 2;
 
 	public ItemSleepingBag() {
-		super(ArmorMaterial.IRON, 2, 1);
-		setCreativeTab(CreativeTabs.tabMisc);
+		super(ArmorMaterial.IRON, 2, EntityEquipmentSlot.CHEST);
+		setCreativeTab(CreativeTabs.MISC);
 		setUnlocalizedName("sleepingbag");
 		setRegistryName("sleepingbag");
 	}
 
 	@Override
-	public String getArmorTexture(ItemStack stack, Entity entity, int slot, String type) {
+	public String getArmorTexture(ItemStack stack, Entity entity, EntityEquipmentSlot slot, String type) {
 		return "sleepingbag:textures/models/sleepingbag.png";
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, int slot, ModelBiped _default) {
-		return slot == CHESTPIECE_TYPE ? ModelSleepingBag.instance : _default;
+	public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, EntityEquipmentSlot slot, ModelBiped _default) {
+		return slot == EntityEquipmentSlot.CHEST ? ModelSleepingBag.instance : _default;
 	}
 
 	@Override
-	public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-		return stack;
+	public ActionResult<ItemStack> onItemRightClick(ItemStack stack, World world, EntityPlayer player, EnumHand hand) {
+		return new ActionResult<>(EnumActionResult.PASS, stack);
 	}
 
 	@Override
-	public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ) {
+	public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		if (!world.isRemote) {
 			ItemStack currentArmor = player.inventory.armorInventory[CHESTPIECE_SLOT];
 			if (currentArmor != null) {
@@ -79,22 +83,20 @@ public class ItemSleepingBag extends ItemArmor {
 			player.inventory.armorInventory[CHESTPIECE_SLOT] = sleepingBagCopy;
 			if (currentArmor != null) {
 				player.inventory.setInventorySlotContents(player.inventory.currentItem, currentArmor);
-				return true;
-//				return currentArmor;
+				return EnumActionResult.SUCCESS;
 			}
 
 
 			player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
-			return false;
-//			stack.stackSize = 0;
+			return EnumActionResult.FAIL;
 		}
 		player.inventory.setInventorySlotContents(player.inventory.currentItem, stack);
-		return true;
+		return EnumActionResult.SUCCESS;
 	}
 
 	@Override
-	public boolean isValidArmor(ItemStack stack, int type, Entity entity) {
-		return type == CHESTPIECE_TYPE;
+	public boolean isValidArmor(ItemStack stack, EntityEquipmentSlot slot, Entity entity) {
+		return slot == EntityEquipmentSlot.CHEST;
 	}
 
 	@Override
@@ -129,7 +131,7 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	private static void sleepSafe(EntityPlayerMP player, World world, BlockPos pos) {
-		if (player.isRiding()) player.mountEntity(null);
+		if (player.isRiding()) player.dismountRidingEntity();
 
 		ObfuscationReflectionHelper.setPrivateValue(EntityPlayer.class, player, true, "sleeping", "field_71083_bS");
 		ObfuscationReflectionHelper.setPrivateValue(EntityPlayer.class, player, 0, "sleepTimer", "field_71076_b");
@@ -139,15 +141,15 @@ public class ItemSleepingBag extends ItemArmor {
 		player.motionX = player.motionZ = player.motionY = 0;
 		world.updateAllPlayersSleepingFlag();
 
-		S0APacketUseBed sleepPacket = new S0APacketUseBed(player, pos);
-		player.getServerForPlayer().getEntityTracker().func_151248_b(player, sleepPacket);
+		SPacketUseBed sleepPacket = new SPacketUseBed(player, pos);
+		player.getServerWorld().getEntityTracker().sendToTrackingAndSelf(player, sleepPacket);
 		player.playerNetServerHandler.sendPacket(sleepPacket);
 	}
 
 	private static EntityPlayer.EnumStatus vanillaCanSleep(EntityPlayer player, World world, BlockPos pos) {
 		PlayerSleepInBedEvent event = new PlayerSleepInBedEvent(player, pos);
 		MinecraftForge.EVENT_BUS.post(event);
-		if (event.result != null) return event.result;
+		if (event.getResultStatus() != null) return event.getResultStatus();
 
 		if (!world.provider.isSurfaceWorld()) return EntityPlayer.EnumStatus.NOT_POSSIBLE_HERE;
 		if (world.isDaytime()) return EntityPlayer.EnumStatus.NOT_POSSIBLE_NOW;
@@ -163,7 +165,7 @@ public class ItemSleepingBag extends ItemArmor {
 		if (player.isPlayerSleeping() || !player.isEntityAlive()) return false;
 
 		if (!isNotSuffocating(world, pos) || !isSolidEnough(world, pos.down())) {
-			player.addChatComponentMessage(new ChatComponentTranslation("sleepingbag.no_ground"));
+			player.addChatComponentMessage(new TextComponentTranslation("sleepingbag.no_ground"));
 			return false;
 		}
 
@@ -172,9 +174,9 @@ public class ItemSleepingBag extends ItemArmor {
 		if (status == EntityPlayer.EnumStatus.OK) {
 			return true;
 		} else if (status == EntityPlayer.EnumStatus.NOT_POSSIBLE_NOW) {
-			player.addChatComponentMessage(new ChatComponentTranslation("tile.bed.noSleep"));
+			player.addChatComponentMessage(new TextComponentTranslation("tile.bed.noSleep"));
 		} else if (status == EntityPlayer.EnumStatus.NOT_SAFE) {
-			player.addChatComponentMessage(new ChatComponentTranslation("tile.bed.notSafe"));
+			player.addChatComponentMessage(new TextComponentTranslation("tile.bed.notSafe"));
 		}
 
 		return false;
@@ -182,12 +184,12 @@ public class ItemSleepingBag extends ItemArmor {
 
 	private static boolean isNotSuffocating(World world, BlockPos pos) {
 		IBlockState state = world.getBlockState(pos);
-		return state.getBlock().getCollisionBoundingBox(world, pos, state) == null || state.getBlock().isAir(world, pos);
+		return state.getBlock().getCollisionBoundingBox(state, world, pos) == null || state.getBlock().isAir(state, world, pos);
 	}
 
 	private static boolean isSolidEnough(World world, BlockPos pos) {
 		IBlockState state = world.getBlockState(pos);
-		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(world, pos, state);
+		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, world, pos);
 		if (box == null) return false;
 
 		double dx = box.maxX - box.minX;
@@ -241,14 +243,14 @@ public class ItemSleepingBag extends ItemArmor {
 
 		if (item instanceof ItemArmor) {
 			ItemArmor armor = (ItemArmor)item;
-			return armor.armorType == CHESTPIECE_TYPE;
+			return armor.armorType == EntityEquipmentSlot.CHEST;
 		}
 
 		return false;
 	}
 
 	private static void storeOriginalSpawn(EntityPlayer player, NBTTagCompound tag) {
-		BlockPos pos = player.getBedLocation(player.worldObj.provider.getDimensionId());
+		BlockPos pos = player.getBedLocation(player.worldObj.provider.getDimension());
 		if (pos != null) {
 			tag.setLong(TAG_SPAWN, pos.toLong());
 		}
@@ -257,7 +259,7 @@ public class ItemSleepingBag extends ItemArmor {
 	private static void restoreOriginalSpawn(EntityPlayer player, NBTTagCompound tag) {
 		if (tag.hasKey(TAG_SPAWN)) {
 			BlockPos pos = BlockPos.fromLong(tag.getLong(TAG_SPAWN));
-			player.setSpawnChunk(pos, false, player.worldObj.provider.getDimensionId());
+			player.setSpawnChunk(pos, false, player.worldObj.provider.getDimension());
 			tag.removeTag(TAG_SPAWN);
 		}
 	}

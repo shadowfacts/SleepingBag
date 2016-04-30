@@ -1,6 +1,6 @@
 package net.shadowfacts.sleepingbag;
 
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
@@ -12,17 +12,16 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.oredict.ShapedOreRecipe;
 
 /**
  * @author shadowfacts
  */
-@Mod(modid = SleepingBag.modId, name = SleepingBag.name, version = SleepingBag.version, acceptedMinecraftVersions = "[1.8.8,1.8.9]", dependencies = "required-after:shadowmc;")
+@Mod(modid = SleepingBag.modId, name = SleepingBag.name, version = SleepingBag.version, acceptedMinecraftVersions = "[1.9]", dependencies = "required-after:shadowmc;")
 public class SleepingBag {
 
 	public static final String modId = "SleepingBag";
 	public static final String name = "Sleeping Bag";
-	public static final String version = "0.1.0";
+	public static final String version = "1.1.0";
 
 //	Content
 	public static ItemSleepingBag sleepingBag;
@@ -30,7 +29,7 @@ public class SleepingBag {
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		sleepingBag = new ItemSleepingBag();
-		GameRegistry.registerItem(sleepingBag);
+		GameRegistry.register(sleepingBag);
 
 		if (event.getSide() == Side.CLIENT) {
 			ModelLoader.setCustomModelResourceLocation(sleepingBag, 0, new ModelResourceLocation("sleepingbag:sleepingbag", "inventory"));
@@ -38,12 +37,12 @@ public class SleepingBag {
 
 		MinecraftForge.EVENT_BUS.register(this);
 
-		GameRegistry.addShapedRecipe(new ItemStack(sleepingBag), "-- ", "###", '-', Blocks.carpet, '#', Blocks.wool);
+		GameRegistry.addShapedRecipe(new ItemStack(sleepingBag), "-- ", "###", '-', Blocks.CARPET, '#', Blocks.WOOL);
 	}
 
 	@SubscribeEvent
 	public void handleSleepLocationCheck(SleepingLocationCheckEvent event) {
-		if (ItemSleepingBag.isWearingSleepingBag(event.entityPlayer)) {
+		if (ItemSleepingBag.isWearingSleepingBag(event.getEntityPlayer())) {
 			event.setResult(Event.Result.ALLOW);
 		}
 	}
