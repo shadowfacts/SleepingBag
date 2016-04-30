@@ -1,0 +1,75 @@
+buildscript {
+	repositories {
+		jcenter()
+		maven {
+			name "forge"
+			url "http://files.minecraftforge.net/maven/"
+		}
+	}
+	dependencies {
+		classpath "net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT"
+	}
+}
+
+plugins {
+	id "com.matthewprenger.cursegradle" version "1.0.6"
+}
+
+apply plugin: "net.minecraftforge.gradle.forge"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+version = mc_version + "-" + mod_version
+
+minecraft {
+	version = mc_version + "-" + forge_version
+	runDir = "run"
+
+	mappings = mcp_mappings
+}
+
+processResources {
+	inputs.property "version", project.version
+	inputs.property "mcversion", project.minecraft.version
+
+	from (sourceSets.main.resources.srcDirs) {
+		include "mcmod.info"
+		expand "version": project.version, "mcversion": project.minecraft.version
+	}
+	from (sourceSets.main.resources.srcDirs) {
+		exclude "mcmod.info"
+	}
+}
+
+repositories {
+	maven {
+		name "shadowfacts"
+		url "http://mvn.rx14.co.uk/shadowfacts/"
+	}
+}
+
+dependencies {
+	compile group: "net.shadowfacts", name: "ShadowMC", version: mc_version + "-" + shadowmc_version
+}
+
+// curseforge {
+// 	apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
+
+// 	project {
+// 		id = ""
+
+// 		addGameVersion "1.8.8"
+// 		addGameVersion "1.8.9"
+// 		addGameVersion "Java 8"
+
+// 		mainArtifact(jar) {
+// 			releaseType = "release"
+// 			changelog = ""
+
+// 			relations {
+// 				requiredLibrary "shadowmc"
+// 			}
+// 		}
+// 	}
+// }
