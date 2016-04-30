@@ -1,6 +1,8 @@
 package net.shadowfacts.sleepingbag;
 
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
@@ -10,6 +12,7 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.oredict.ShapedOreRecipe;
 
 /**
  * @author shadowfacts
@@ -34,6 +37,8 @@ public class SleepingBag {
 		}
 
 		MinecraftForge.EVENT_BUS.register(this);
+
+		GameRegistry.addShapedRecipe(new ItemStack(sleepingBag), "-- ", "###", '-', Blocks.carpet, '#', Blocks.wool);
 	}
 
 	@SubscribeEvent

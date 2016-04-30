@@ -20,6 +20,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
@@ -49,35 +51,10 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, int slot, ModelBiped _default) {
 		return slot == CHESTPIECE_TYPE ? ModelSleepingBag.instance : _default;
 	}
-
-//	@Override
-//	public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-//		if (!world.isRemote) {
-//			ItemStack currentArmor = player.inventory.armorInventory[CHESTPIECE_SLOT];
-//			if (currentArmor != null) {
-//				currentArmor = currentArmor.copy();
-//			}
-//
-//			final ItemStack sleepingBagCopy = stack.copy();
-//
-//			if (sleepingBagCopy.getTagCompound() == null) sleepingBagCopy.setTagCompound(new NBTTagCompound());
-//			NBTTagCompound tag = sleepingBagCopy.getTagCompound();
-//
-//			tag.setInteger(TAG_SLOT, player.inventory.currentItem);
-//
-//			player.inventory.armorInventory[CHESTPIECE_SLOT] = sleepingBagCopy;
-//			if (currentArmor != null) {
-//				return currentArmor;
-//			}
-//
-//			stack.stackSize = 0;
-//		}
-//		return stack;
-//	}
-
 
 	@Override
 	public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
