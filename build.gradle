@@ -53,23 +53,23 @@ dependencies {
 	compile group: "net.shadowfacts", name: "ShadowMC", version: mc_version + "-" + shadowmc_version
 }
 
-// curseforge {
-// 	apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
+curseforge {
+	apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
 
-// 	project {
-// 		id = ""
+	project {
+		id = "244584"
 
-// 		addGameVersion "1.8.8"
-// 		addGameVersion "1.8.9"
-// 		addGameVersion "Java 8"
+		addGameVersion "1.8.8"
+		addGameVersion "1.8.9"
+		addGameVersion "Java 8"
 
-// 		mainArtifact(jar) {
-// 			releaseType = "release"
-// 			changelog = ""
+		mainArtifact(jar) {
+			releaseType = "release"
+			changelog = ""
 
-// 			relations {
-// 				requiredLibrary "shadowmc"
-// 			}
-// 		}
-// 	}
-// }
+			relations {
+				requiredLibrary "shadowmc"
+			}
+		}
+	}
+}
