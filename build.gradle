@@ -7,7 +7,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath "net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT"
+		classpath "net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT"
 	}
 }
 
@@ -59,7 +59,7 @@ curseforge {
 	project {
 		id = "244584"
 
-		addGameVersion "1.9"
+		addGameVersion "1.9.4"
 		addGameVersion "Java 8"
 
 		mainArtifact(jar) {
