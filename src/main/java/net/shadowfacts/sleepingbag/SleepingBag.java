@@ -16,12 +16,12 @@ import net.minecraftforge.fml.relauncher.Side;
 /**
  * @author shadowfacts
  */
-@Mod(modid = SleepingBag.modId, name = SleepingBag.name, version = SleepingBag.version, acceptedMinecraftVersions = "[1.9]", dependencies = "required-after:shadowmc;")
+@Mod(modid = SleepingBag.modId, name = SleepingBag.name, version = SleepingBag.version, acceptedMinecraftVersions = "[1.9.4]", dependencies = "required-after:shadowmc;")
 public class SleepingBag {
 
 	public static final String modId = "SleepingBag";
 	public static final String name = "Sleeping Bag";
-	public static final String version = "1.1.0";
+	public static final String version = "1.2.0";
 
 //	Content
 	public static ItemSleepingBag sleepingBag;

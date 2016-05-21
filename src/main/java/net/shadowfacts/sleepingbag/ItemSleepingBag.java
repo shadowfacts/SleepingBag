@@ -143,22 +143,22 @@ public class ItemSleepingBag extends ItemArmor {
 
 		SPacketUseBed sleepPacket = new SPacketUseBed(player, pos);
 		player.getServerWorld().getEntityTracker().sendToTrackingAndSelf(player, sleepPacket);
-		player.playerNetServerHandler.sendPacket(sleepPacket);
+		player.connection.sendPacket(sleepPacket);
 	}
 
-	private static EntityPlayer.EnumStatus vanillaCanSleep(EntityPlayer player, World world, BlockPos pos) {
+	private static EntityPlayer.SleepResult vanillaCanSleep(EntityPlayer player, World world, BlockPos pos) {
 		PlayerSleepInBedEvent event = new PlayerSleepInBedEvent(player, pos);
 		MinecraftForge.EVENT_BUS.post(event);
 		if (event.getResultStatus() != null) return event.getResultStatus();
 
-		if (!world.provider.isSurfaceWorld()) return EntityPlayer.EnumStatus.NOT_POSSIBLE_HERE;
-		if (world.isDaytime()) return EntityPlayer.EnumStatus.NOT_POSSIBLE_NOW;
+		if (!world.provider.isSurfaceWorld()) return EntityPlayer.SleepResult.NOT_POSSIBLE_HERE;
+		if (world.isDaytime()) return EntityPlayer.SleepResult.NOT_POSSIBLE_NOW;
 
 		Vec3i vec = new Vec3i(8, 5, 8);
 		List<EntityMob> mobs = world.getEntitiesWithinAABB(EntityMob.class, new AxisAlignedBB(pos.subtract(vec), pos.add(vec)));
-		if (!mobs.isEmpty()) return EntityPlayer.EnumStatus.NOT_SAFE;
+		if (!mobs.isEmpty()) return EntityPlayer.SleepResult.NOT_SAFE;
 
-		return EntityPlayer.EnumStatus.OK;
+		return EntityPlayer.SleepResult.OK;
 	}
 
 	private static boolean canPlayerSleep(EntityPlayer player, World world, BlockPos pos) {
@@ -169,13 +169,13 @@ public class ItemSleepingBag extends ItemArmor {
 			return false;
 		}
 
-		EntityPlayer.EnumStatus status = vanillaCanSleep(player, world, pos);
+		EntityPlayer.SleepResult status = vanillaCanSleep(player, world, pos);
 
-		if (status == EntityPlayer.EnumStatus.OK) {
+		if (status == EntityPlayer.SleepResult.OK) {
 			return true;
-		} else if (status == EntityPlayer.EnumStatus.NOT_POSSIBLE_NOW) {
+		} else if (status == EntityPlayer.SleepResult.NOT_POSSIBLE_NOW) {
 			player.addChatComponentMessage(new TextComponentTranslation("tile.bed.noSleep"));
-		} else if (status == EntityPlayer.EnumStatus.NOT_SAFE) {
+		} else if (status == EntityPlayer.SleepResult.NOT_SAFE) {
 			player.addChatComponentMessage(new TextComponentTranslation("tile.bed.notSafe"));
 		}
 
@@ -184,12 +184,12 @@ public class ItemSleepingBag extends ItemArmor {
 
 	private static boolean isNotSuffocating(World world, BlockPos pos) {
 		IBlockState state = world.getBlockState(pos);
-		return state.getBlock().getCollisionBoundingBox(state, world, pos) == null || state.getBlock().isAir(state, world, pos);
+		return state.getCollisionBoundingBox(world, pos) == null || state.getBlock().isAir(state, world, pos);
 	}
 
 	private static boolean isSolidEnough(World world, BlockPos pos) {
 		IBlockState state = world.getBlockState(pos);
-		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, world, pos);
+		AxisAlignedBB box = state.getCollisionBoundingBox(world, pos);
 		if (box == null) return false;
 
 		double dx = box.maxX - box.minX;
