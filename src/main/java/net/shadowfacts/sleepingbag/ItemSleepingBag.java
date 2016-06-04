@@ -41,6 +41,7 @@ public class ItemSleepingBag extends ItemArmor {
 	private static final String TAG_SLOT = "Slot";
 
 	private static final int CHESTPIECE_SLOT = 2;
+	private static final int OFF_HAND = 106;
 
 	public ItemSleepingBag() {
 		super(ArmorMaterial.IRON, 2, EntityEquipmentSlot.CHEST);
@@ -67,6 +68,8 @@ public class ItemSleepingBag extends ItemArmor {
 
 	@Override
 	public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		int slot = hand == EnumHand.OFF_HAND ? OFF_HAND : player.inventory.currentItem;
+
 		if (!world.isRemote) {
 			ItemStack currentArmor = player.inventory.armorInventory[CHESTPIECE_SLOT];
 			if (currentArmor != null) {
@@ -78,19 +81,17 @@ public class ItemSleepingBag extends ItemArmor {
 			if (sleepingBagCopy.getTagCompound() == null) sleepingBagCopy.setTagCompound(new NBTTagCompound());
 			NBTTagCompound tag = sleepingBagCopy.getTagCompound();
 
-			tag.setInteger(TAG_SLOT, player.inventory.currentItem);
+			tag.setInteger(TAG_SLOT, slot);
 
 			player.inventory.armorInventory[CHESTPIECE_SLOT] = sleepingBagCopy;
-			if (currentArmor != null) {
-				player.inventory.setInventorySlotContents(player.inventory.currentItem, currentArmor);
-				return EnumActionResult.SUCCESS;
+			if (slot == OFF_HAND) {
+				player.inventory.offHandInventory[0] = currentArmor;
+			} else {
+				player.inventory.setInventorySlotContents(slot, currentArmor);
 			}
-
-
-			player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
-			return EnumActionResult.FAIL;
+			return EnumActionResult.SUCCESS;
 		}
-		player.inventory.setInventorySlotContents(player.inventory.currentItem, stack);
+		player.inventory.setInventorySlotContents(slot, stack);
 		return EnumActionResult.SUCCESS;
 	}
 
@@ -224,7 +225,13 @@ public class ItemSleepingBag extends ItemArmor {
 		int returnSlot = tag.getInteger(TAG_SLOT);
 		tag.removeTag(TAG_SLOT);
 
-		ItemStack possiblyArmor = player.inventory.mainInventory[returnSlot];
+		ItemStack possiblyArmor;
+		if (returnSlot == OFF_HAND) {
+			possiblyArmor = player.inventory.offHandInventory[0];
+		} else {
+			possiblyArmor = player.inventory.getStackInSlot(returnSlot);
+		}
+
 		if (isChestplate(possiblyArmor)) {
 			player.inventory.armorInventory[CHESTPIECE_SLOT] = possiblyArmor;
 		} else {
@@ -232,7 +239,12 @@ public class ItemSleepingBag extends ItemArmor {
 			if (possiblyArmor != null) return false;
 		}
 
-		player.inventory.setInventorySlotContents(returnSlot, stack);
+		if (returnSlot == OFF_HAND) {
+			player.inventory.offHandInventory[0] = stack;
+		} else {
+			player.inventory.setInventorySlotContents(returnSlot, stack);
+		}
+
 		return true;
 	}
 
