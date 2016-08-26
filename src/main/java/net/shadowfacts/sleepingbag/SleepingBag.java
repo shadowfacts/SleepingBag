@@ -1,50 +1,44 @@
 package net.shadowfacts.sleepingbag;
 
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.init.Blocks;
+import net.fabricmc.api.Hook;
+import net.fabricmc.base.Fabric;
+import net.fabricmc.base.loader.Init;
+import net.fabricmc.event.entity.PlayerTrySleepEvent;
+import net.fabricmc.registry.Registries;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.recipe.RecipeRegistry;
+import net.minecraft.reference.Blocks;
+import net.minecraft.util.Identifier;
 
-/**
- * @author shadowfacts
- */
-@Mod(modid = SleepingBag.modId, name = SleepingBag.name, version = SleepingBag.version, acceptedMinecraftVersions = "[1.9.4]", dependencies = "required-after:shadowmc;")
 public class SleepingBag {
-
-	public static final String modId = "SleepingBag";
-	public static final String name = "Sleeping Bag";
-	public static final String version = "@VERSION@";
 
 //	Content
 	public static ItemSleepingBag sleepingBag;
 
-	@Mod.EventHandler
-	public void preInit(FMLPreInitializationEvent event) {
+	@Init
+	public void init() {
 		sleepingBag = new ItemSleepingBag();
-		GameRegistry.register(sleepingBag);
 
-		if (event.getSide() == Side.CLIENT) {
-			ModelLoader.setCustomModelResourceLocation(sleepingBag, 0, new ModelResourceLocation("sleepingbag:sleepingbag", "inventory"));
+		if (Fabric.getSidedHandler().getSide().hasClient()) {
+			initClient();
 		}
 
-		MinecraftForge.EVENT_BUS.register(this);
+		Fabric.getLoadingBus().subscribe(this);
+		Fabric.getEventBus().subscribe(sleepingBag);
 
-		GameRegistry.addShapedRecipe(new ItemStack(sleepingBag), "-- ", "###", '-', Blocks.CARPET, '#', Blocks.WOOL);
+		RecipeRegistry.getInstance().addShapedRecipe(new ItemStack(sleepingBag), "-- ", "###", '-', Blocks.CARPET, '#', Blocks.WOOL);
 	}
 
-	@SubscribeEvent
-	public void handleSleepLocationCheck(SleepingLocationCheckEvent event) {
-		if (ItemSleepingBag.isWearingSleepingBag(event.getEntityPlayer())) {
-			event.setResult(Event.Result.ALLOW);
-		}
+	private void initClient() {
+//		TODO: register item model
+	}
+
+	@Hook(name = "sleepingbag:registerItems", before = {}, after = "fabric:registerItems")
+	public void registerItems() {
+		Registries.register(new Identifier("sleepingbag:sleepingbag"), sleepingBag);
 	}
 
 }

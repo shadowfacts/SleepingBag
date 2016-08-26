@@ -2,76 +2,28 @@ buildscript {
 	repositories {
 		jcenter()
 		maven {
-			name "forge"
-			url "http://files.minecraftforge.net/maven/"
+			name = "Fabric"
+			url = "http://maven.fabricmc.net/"
 		}
 	}
 	dependencies {
-		classpath "net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT"
+		classpath "net.fabricmc:fabric-loom:0.0.1-SNAPSHOT"
 	}
 }
 
 plugins {
-	id "com.matthewprenger.cursegradle" version "1.0.6"
+	id "idea"
 }
 
-apply plugin: "net.minecraftforge.gradle.forge"
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-version = mc_version + "-" + mod_version
+apply plugin: "net.fabricmc.loom"
 
 minecraft {
-	version = mc_version + "-" + forge_version
-	runDir = "run"
-
-	mappings = mcp_mappings
-
-	replaceIn "SleepingBag.java"
-	replace "@VERSION@", mod_version
-}
-
-processResources {
-	inputs.property "version", project.version
-	inputs.property "mcversion", project.minecraft.version
-
-	from (sourceSets.main.resources.srcDirs) {
-		include "mcmod.info"
-		expand "version": project.version, "mcversion": project.minecraft.version
-	}
-	from (sourceSets.main.resources.srcDirs) {
-		exclude "mcmod.info"
-	}
-}
-
-repositories {
-	maven {
-		name "shadowfacts"
-		url "http://mvn.rx14.co.uk/shadowfacts/"
-	}
+	version = mc_version
+	fabricVersion = fabric_version
 }
 
 dependencies {
-	compile group: "net.shadowfacts", name: "ShadowMC", version: mc_version + "-" + shadowmc_version
-}
-
-curseforge {
-	apiKey = project.hasProperty("curseForgeApiKey") ? project.curseForgeApiKey : ""
-
-	project {
-		id = "244584"
-
-		addGameVersion "1.9.4"
-		addGameVersion "Java 8"
-
-		mainArtifact(jar) {
-			releaseType = "release"
-			changelog = ""
-
-			relations {
-				requiredLibrary "shadowmc"
-			}
-		}
-	}
+	compile group: "net.fabricmc", name: "fabric-registry", version: registry_version
+	compile group: "net.fabricmc", name: "fabric-resources", version: resources_version
+	compile group: "net.fabricmc", name: "fabric-event-entity", version: entity_events_version
 }
