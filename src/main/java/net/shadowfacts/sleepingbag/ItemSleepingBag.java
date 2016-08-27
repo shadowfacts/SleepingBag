@@ -3,6 +3,7 @@ package net.shadowfacts.sleepingbag;
 import net.fabricmc.api.Hook;
 import net.fabricmc.api.Side;
 import net.fabricmc.api.Sided;
+import net.fabricmc.base.Fabric;
 import net.fabricmc.event.entity.PlayerArmorTickEvent;
 import net.fabricmc.event.entity.PlayerTrySleepEvent;
 import net.minecraft.block.IBlockState;
@@ -148,12 +149,12 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	private static EntityPlayer.SleepResult vanillaCanSleep(EntityPlayer player, World world, BlockPos pos) {
-//		PlayerSleepInBedEvent event = new PlayerSleepInBedEvent(player, pos);
-//		MinecraftForge.EVENT_BUS.post(event);
-//		if (event.getResultStatus() != null) return event.getResultStatus();
+		PlayerTrySleepEvent event = new PlayerTrySleepEvent(player, pos);
+		Fabric.getEventBus().publish(event);
+		if (event.getResult() != null) return event.getResult();
 
 		if (!world.provider.isSurfaceWorld()) return EntityPlayer.SleepResult.WRONG_DIMENSION;
-		if (world.getWorldProperties().getDayTime() % 24000 < 12000) return EntityPlayer.SleepResult.WRONG_TIME;
+		if (world.getProperties().getTimeOfDay() % 24000 < 12000) return EntityPlayer.SleepResult.WRONG_TIME;
 
 		Vec3i vec = new Vec3i(8, 5, 8);
 		List<EntityMob> mobs = world.getEntitiesIn(EntityMob.class, new BoundingBox(pos.subtract(vec), pos.add(vec)));
@@ -163,7 +164,7 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	private static boolean canPlayerSleep(EntityPlayer player, World world, BlockPos pos) {
-		if (player.sleeping || !player.isEntityAlive()) return false;
+		if (player.sleeping || !player.isValid()) return false;
 
 		if (!isNotSuffocating(world, pos) || !isSolidEnough(world, pos.down())) {
 			player.addChatMsg(new TextComponentTranslatable("sleepingbag.no_ground"), true);
@@ -185,12 +186,12 @@ public class ItemSleepingBag extends ItemArmor {
 
 	private static boolean isNotSuffocating(World world, BlockPos pos) {
 		IBlockState state = world.getBlockState(pos);
-		return state.getCollisionBoundingBox(world, pos) == null || state.getBlock().isAir(state, world, pos);
+		return state.getCollisionBox(world, pos) == null || state.getBlock().isAir(world, pos);
 	}
 
 	private static boolean isSolidEnough(World world, BlockPos pos) {
 		IBlockState state = world.getBlockState(pos);
-		BoundingBox box = state.getCollisionBoundingBox(world, pos);
+		BoundingBox box = state.getCollisionBox(world, pos);
 		if (box == null) return false;
 
 		double dx = box.maxX - box.minX;
@@ -214,7 +215,7 @@ public class ItemSleepingBag extends ItemArmor {
 					if (stack.hasTag()) {
 						item.getStack().setTag(stack.getTag().copy());
 					}
-					player.world.createEntity(item);
+					player.world.spawnEntity(item);
 				}
 			}
 		}
