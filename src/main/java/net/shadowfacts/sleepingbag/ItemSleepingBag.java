@@ -23,6 +23,7 @@ import net.minecraft.network.packet.client.CPacketPlayerUseBed;
 import net.minecraft.text.impl.TextComponentTranslatable;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
+import net.minecraft.world.DimensionType;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -64,7 +65,8 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	@Override
-	public ActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, Hand hand, Facing facing, float hitX, float hitY, float hitZ) {
+	public ActionResult activate(EntityPlayer player, World world, BlockPos pos, Hand hand, Facing facing, float hitX, float hitY, float hitZ) {
+		ItemStack stack = player.getStackInHand(hand);
 		int slot = hand == Hand.OFF ? OFF_HAND : player.inventory.selectedSlot;
 
 		if (!world.isRemote) {
@@ -92,10 +94,10 @@ public class ItemSleepingBag extends ItemArmor {
 		return ActionResult.SUCCESS;
 	}
 
-	@Override
-	public boolean isValidArmor(ItemStack stack, EquipmentSlot slot, Entity entity) {
-		return slot == EquipmentSlot.CHEST;
-	}
+//	@Override
+//	public boolean isValidArmor(ItemStack stack, EquipmentSlot slot, Entity entity) {
+//		return slot == EquipmentSlot.CHEST;
+//	}
 
 	@Hook(name = "sleepingbag:onArmorTick", before = {}, after = {})
 	public void onArmorTick(PlayerArmorTickEvent event) {
@@ -141,10 +143,10 @@ public class ItemSleepingBag extends ItemArmor {
 		((EntityPlayer)player).g = pos;
 
 		player.velocityX = player.velocityY = player.velocityZ = 0;
-		world.updateAllPlayersSleepingFlag();
+		world.updateSleepingStatus();
 
 		CPacketPlayerUseBed sleepPacket = new CPacketPlayerUseBed(player, pos);
-		player.x().getEntityTracker().sendToAllTrackingAndSelf(player, sleepPacket);
+		player.getWorldServer().getEntityTracker().sendToAllTrackingAndSelf(player, sleepPacket);
 		player.networkHandler.sendPacket(sleepPacket);
 	}
 
@@ -153,7 +155,7 @@ public class ItemSleepingBag extends ItemArmor {
 		Fabric.getEventBus().publish(event);
 		if (event.getResult() != null) return event.getResult();
 
-		if (!world.provider.isSurfaceWorld()) return EntityPlayer.SleepResult.WRONG_DIMENSION;
+		if (world.getProperties().dimension == DimensionType.OVERWORLD.getID()) return EntityPlayer.SleepResult.WRONG_DIMENSION;
 		if (world.getProperties().getTimeOfDay() % 24000 < 12000) return EntityPlayer.SleepResult.WRONG_TIME;
 
 		Vec3i vec = new Vec3i(8, 5, 8);
