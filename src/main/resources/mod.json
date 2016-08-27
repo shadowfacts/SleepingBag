@@ -6,6 +6,9 @@
 		"net.fabricmc.fabric-resources": {
 			"version": ">=1.0.0",
 			"side": "client"
+		},
+		"net.fabricmc.registry.fabric-registry": {
+			"version": ">=0.1.0"
 		}
 	}
 }
