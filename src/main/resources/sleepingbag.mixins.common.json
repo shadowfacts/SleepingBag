@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "net.shadowfacts.sleepingbag.mixin.common",
+	"compatibilityLevel": "JAVA_8",
+	"mixins": [
+		"MixinEntityPlayer"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

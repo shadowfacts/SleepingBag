@@ -105,7 +105,7 @@ public class ItemSleepingBag extends ItemArmor {
 		World world = player.getWorld();
 		ItemStack stack = event.getStack();
 
-		if (!(player instanceof EntityPlayerServer)) return;
+//		if (!(player instanceof EntityPlayerServer)) return;
 		if (player.sleeping) return;
 
 		if (stack.getTag() == null) {
@@ -113,10 +113,12 @@ public class ItemSleepingBag extends ItemArmor {
 		}
 		TagCompound tag = stack.getTag();
 		if (tag.getBoolean(TAG_SLEEPING)) {
-			restoreOriginalSpawn(player, tag);
-			restoreOriginalPosition(player, tag);
-			tag.removeTag(TAG_SLEEPING);
-			getOutOfSleepingBag(player);
+			if (player instanceof EntityPlayerServer) {
+				restoreOriginalSpawn(player, tag);
+				restoreOriginalPosition(player, tag);
+				tag.removeTag(TAG_SLEEPING);
+				getOutOfSleepingBag(player);
+			}
 		} else {
 			int posX = MathUtils.floor(player.x);
 			int posY = MathUtils.floor(player.y);
@@ -124,30 +126,40 @@ public class ItemSleepingBag extends ItemArmor {
 			BlockPos pos = new BlockPos(posX, posY, posZ);
 
 			if (canPlayerSleep(player, world, pos)) {
-				storeOriginalSpawn(player, tag);
-				storeOriginalPosition(player, tag);
-				tag.setBoolean(TAG_SLEEPING, true);
-				sleepSafe((EntityPlayerServer)player, world, pos);
+				if (player instanceof EntityPlayerServer) {
+					storeOriginalSpawn(player, tag);
+					storeOriginalPosition(player, tag);
+					tag.setBoolean(TAG_SLEEPING, true);
+				}
+				sleepSafe(player, world, pos);
 			} else {
-				getOutOfSleepingBag(player);
+				if (player instanceof EntityPlayerServer) {
+					getOutOfSleepingBag(player);
+				}
 			}
 		}
 	}
 
-	private static void sleepSafe(EntityPlayerServer player, World world, BlockPos pos) {
+	private static void sleepSafe(EntityPlayer player, World world, BlockPos pos) {
 		if (player.getVehicle() != null) player.dismountVehicle();
 
-		ReflectionHelper.set(EntityPlayer.class, player, true, "sleeping");
-		ReflectionHelper.set(EntityPlayer.class, player, 0, "sleepTimer");
+//		ReflectionHelper.set(EntityPlayer.class, player, true, "sleeping");
+//		ReflectionHelper.set(EntityPlayer.class, player, 0, "sleepTimer");
+		player.sleeping = true;
+		player.sleepTimer = 0;
+		player.sleepingPos = pos;
 
-		((EntityPlayer)player).g = pos;
+		if (player instanceof EntityPlayerServer) {
+			EntityPlayerServer playerServer = (EntityPlayerServer)player;
+			player.g = pos;
 
-		player.velocityX = player.velocityY = player.velocityZ = 0;
-		world.updateSleepingStatus();
+			player.velocityX = player.velocityY = player.velocityZ = 0;
+			world.updateSleepingStatus();
 
-		CPacketPlayerUseBed sleepPacket = new CPacketPlayerUseBed(player, pos);
-		player.getWorldServer().getEntityTracker().sendToAllTrackingAndSelf(player, sleepPacket);
-		player.networkHandler.sendPacket(sleepPacket);
+			CPacketPlayerUseBed sleepPacket = new CPacketPlayerUseBed(player, pos);
+			playerServer.getWorldServer().getEntityTracker().sendToAllTrackingAndSelf(player, sleepPacket);
+			playerServer.networkHandler.sendPacket(sleepPacket);
+		}
 	}
 
 	private static EntityPlayer.SleepResult vanillaCanSleep(EntityPlayer player, World world, BlockPos pos) {

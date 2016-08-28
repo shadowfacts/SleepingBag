@@ -2,6 +2,11 @@
 	"group": "net.shadowfacts",
 	"id": "sleepingbag",
 	"version": "1.3.0",
+	"modClass": "net.shadowfacts.sleepingbag.SleepingBag",
+	"mixins": {
+		"common": "sleepingbag.mixins.common.json",
+		"client": "sleepingbag.mixins.client.json"
+	},
 	"dependencies": {
 		"net.fabricmc.fabric-resources": {
 			"version": ">=1.0.0",
