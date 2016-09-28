@@ -10,6 +10,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 
@@ -23,6 +25,8 @@ public class SleepingBag {
 	public static final String name = "Sleeping Bag";
 	public static final String version = "@VERSION@";
 
+	public static SimpleNetworkWrapper network;
+
 //	Content
 	public static ItemSleepingBag sleepingBag;
 
@@ -35,16 +39,12 @@ public class SleepingBag {
 			ModelLoader.setCustomModelResourceLocation(sleepingBag, 0, new ModelResourceLocation("sleepingbag:sleepingbag", "inventory"));
 		}
 
-		MinecraftForge.EVENT_BUS.register(this);
+		MinecraftForge.EVENT_BUS.register(new EventHandler());
 
 		GameRegistry.addShapedRecipe(new ItemStack(sleepingBag), "-- ", "###", '-', Blocks.CARPET, '#', Blocks.WOOL);
-	}
 
-	@SubscribeEvent
-	public void handleSleepLocationCheck(SleepingLocationCheckEvent event) {
-		if (ItemSleepingBag.isWearingSleepingBag(event.getEntityPlayer())) {
-			event.setResult(Event.Result.ALLOW);
-		}
+		network = NetworkRegistry.INSTANCE.newSimpleChannel(modId);
+		network.registerMessage(PacketSleep.class, PacketSleep.class, 0, Side.SERVER);
 	}
 
 }

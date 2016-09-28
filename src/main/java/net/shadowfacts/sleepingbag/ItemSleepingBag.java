@@ -29,6 +29,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author shadowfacts
@@ -61,14 +62,9 @@ public class ItemSleepingBag extends ItemArmor {
 		return slot == EntityEquipmentSlot.CHEST ? ModelSleepingBag.instance : _default;
 	}
 
-	@Override
-	public ActionResult<ItemStack> onItemRightClick(ItemStack stack, World world, EntityPlayer player, EnumHand hand) {
-		return new ActionResult<>(EnumActionResult.PASS, stack);
-	}
-
-	@Override
-	public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public static EnumActionResult useSleepingBag(EntityPlayer player, World world, BlockPos pos, EnumHand hand) {
 		int slot = hand == EnumHand.OFF_HAND ? OFF_HAND : player.inventory.currentItem;
+		ItemStack stack = player.getHeldItem(hand);
 
 		if (!world.isRemote) {
 			ItemStack currentArmor = player.inventory.armorInventory[CHESTPIECE_SLOT];
@@ -93,6 +89,11 @@ public class ItemSleepingBag extends ItemArmor {
 		}
 		player.inventory.setInventorySlotContents(slot, stack);
 		return EnumActionResult.SUCCESS;
+	}
+
+	@Override
+	public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		return useSleepingBag(player, world, pos, hand);
 	}
 
 	@Override
