@@ -18,7 +18,7 @@ import net.minecraftforge.fml.relauncher.Side;
 /**
  * @author shadowfacts
  */
-@Mod(modid = SleepingBag.modId, name = SleepingBag.name, version = SleepingBag.version, acceptedMinecraftVersions = "[1.9.4]", dependencies = "required-after:shadowmc;")
+@Mod(modid = SleepingBag.modId, name = SleepingBag.name, version = SleepingBag.version, acceptedMinecraftVersions = "[1.10.2]", dependencies = "required-after:shadowmc@[3.4.6,);")
 public class SleepingBag {
 
 	public static final String modId = "SleepingBag";
