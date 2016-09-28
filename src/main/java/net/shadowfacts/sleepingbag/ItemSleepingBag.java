@@ -27,6 +27,7 @@ import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.shadowfacts.shadowmc.ShadowMC;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,6 +44,8 @@ public class ItemSleepingBag extends ItemArmor {
 
 	private static final int CHESTPIECE_SLOT = 2;
 	private static final int OFF_HAND = 106;
+
+	private static final int MESSAGE_ID = 8472;
 
 	public ItemSleepingBag() {
 		super(ArmorMaterial.IRON, 2, EntityEquipmentSlot.CHEST);
@@ -167,7 +170,7 @@ public class ItemSleepingBag extends ItemArmor {
 		if (player.isPlayerSleeping() || !player.isEntityAlive()) return false;
 
 		if (!isNotSuffocating(world, pos) || !isSolidEnough(world, pos.down())) {
-			player.addChatComponentMessage(new TextComponentTranslation("sleepingbag.no_ground"));
+			ShadowMC.proxy.sendSpamlessMessage(player, new TextComponentTranslation("sleepingbag.no_ground"), MESSAGE_ID);
 			return false;
 		}
 
@@ -176,9 +179,9 @@ public class ItemSleepingBag extends ItemArmor {
 		if (status == EntityPlayer.SleepResult.OK) {
 			return true;
 		} else if (status == EntityPlayer.SleepResult.NOT_POSSIBLE_NOW) {
-			player.addChatComponentMessage(new TextComponentTranslation("tile.bed.noSleep"));
+			ShadowMC.proxy.sendSpamlessMessage(player, new TextComponentTranslation("tile.bed.noSleep"), MESSAGE_ID);
 		} else if (status == EntityPlayer.SleepResult.NOT_SAFE) {
-			player.addChatComponentMessage(new TextComponentTranslation("tile.bed.notSafe"));
+			ShadowMC.proxy.sendSpamlessMessage(player, new TextComponentTranslation("tile.bed.notSafe"), MESSAGE_ID);
 		}
 
 		return false;
