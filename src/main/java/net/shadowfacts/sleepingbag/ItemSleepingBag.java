@@ -138,7 +138,7 @@ public class ItemSleepingBag extends ItemArmor {
 		ObfuscationReflectionHelper.setPrivateValue(EntityPlayer.class, player, true, "sleeping", "field_71083_bS");
 		ObfuscationReflectionHelper.setPrivateValue(EntityPlayer.class, player, 0, "sleepTimer", "field_71076_b");
 
-		player.playerLocation = pos;
+		player.bedLocation = pos;
 
 		player.motionX = player.motionZ = player.motionY = 0;
 		world.updateAllPlayersSleepingFlag();
