@@ -53,7 +53,7 @@ repositories {
 }
 
 dependencies {
-	compile group: "net.shadowfacts", name: "ShadowMC", version: mc_version + "-" + shadowmc_version
+	deobfCompile group: "net.shadowfacts", name: "ShadowMC", version: mc_version + "-" + shadowmc_version
 }
 
 curseforge {
