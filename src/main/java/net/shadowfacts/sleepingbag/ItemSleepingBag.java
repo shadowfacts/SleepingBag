@@ -12,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemElytra;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.SPacketUseBed;
@@ -236,7 +237,7 @@ public class ItemSleepingBag extends ItemArmor {
 			possiblyArmor = player.inventory.getStackInSlot(returnSlot);
 		}
 
-		if (isChestplate(possiblyArmor)) {
+		if (isChestplateOrElytra(possiblyArmor)) {
 			player.inventory.armorInventory[CHESTPIECE_SLOT] = possiblyArmor;
 		} else {
 			player.inventory.armorInventory[CHESTPIECE_SLOT] = null;
@@ -252,7 +253,7 @@ public class ItemSleepingBag extends ItemArmor {
 		return true;
 	}
 
-	private static boolean isChestplate(ItemStack stack) {
+	private static boolean isChestplateOrElytra(ItemStack stack) {
 		if (stack == null) return false;
 		Item item = stack.getItem();
 		if (item instanceof ItemSleepingBag) return false;
@@ -261,8 +262,7 @@ public class ItemSleepingBag extends ItemArmor {
 			ItemArmor armor = (ItemArmor)item;
 			return armor.armorType == EntityEquipmentSlot.CHEST;
 		}
-
-		return false;
+		return (item instanceof ItemElytra);
 	}
 
 	private static void storeOriginalSpawn(EntityPlayer player, NBTTagCompound tag) {
