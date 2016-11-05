@@ -37,6 +37,7 @@ public class SleepingBag {
 
 		if (event.getSide() == Side.CLIENT) {
 			ModelLoader.setCustomModelResourceLocation(sleepingBag, 0, new ModelResourceLocation("sleepingbag:sleepingbag", "inventory"));
+			MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
 		}
 
 		MinecraftForge.EVENT_BUS.register(new EventHandler());
