@@ -71,8 +71,8 @@ public class ItemSleepingBag extends ItemArmor {
 		ItemStack stack = player.getHeldItem(hand);
 
 		if (!world.isRemote) {
-			ItemStack currentArmor = player.inventory.armorInventory[CHESTPIECE_SLOT];
-			if (currentArmor != null) {
+			ItemStack currentArmor = player.inventory.armorInventory.get(CHESTPIECE_SLOT);
+			if (!currentArmor.isEmpty()) {
 				currentArmor = currentArmor.copy();
 			}
 
@@ -83,9 +83,9 @@ public class ItemSleepingBag extends ItemArmor {
 
 			tag.setInteger(TAG_SLOT, slot);
 
-			player.inventory.armorInventory[CHESTPIECE_SLOT] = sleepingBagCopy;
+			player.inventory.armorInventory.set(CHESTPIECE_SLOT, sleepingBagCopy);
 			if (slot == OFF_HAND) {
-				player.inventory.offHandInventory[0] = currentArmor;
+				player.inventory.offHandInventory.set(0, currentArmor);
 			} else {
 				player.inventory.setInventorySlotContents(slot, currentArmor);
 			}
@@ -96,7 +96,7 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	@Override
-	public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		return useSleepingBag(player, world, pos, hand);
 	}
 
@@ -120,9 +120,9 @@ public class ItemSleepingBag extends ItemArmor {
 			tag.removeTag(TAG_SLEEPING);
 			getOutOfSleepingBag(player);
 		} else {
-			int posX = MathHelper.floor_double(player.posX);
-			int posY = MathHelper.floor_double(player.posY);
-			int posZ = MathHelper.floor_double(player.posZ);
+			int posX = MathHelper.floor(player.posX);
+			int posY = MathHelper.floor(player.posY);
+			int posZ = MathHelper.floor(player.posZ);
 			BlockPos pos = new BlockPos(posX, posY, posZ);
 
 			if (canPlayerSleep(player, world, pos)) {
@@ -143,12 +143,13 @@ public class ItemSleepingBag extends ItemArmor {
 		ObfuscationReflectionHelper.setPrivateValue(EntityPlayer.class, player, 0, "sleepTimer", "field_71076_b");
 
 		player.bedLocation = pos;
+		SleepingBag.network.sendTo(new PacketSetBedLocation(pos), player);
 
 		player.motionX = player.motionZ = player.motionY = 0;
 		world.updateAllPlayersSleepingFlag();
 
 		SPacketUseBed sleepPacket = new SPacketUseBed(player, pos);
-		player.getServerWorld().getEntityTracker().sendToTrackingAndSelf(player, sleepPacket);
+		player.getServerWorld().getEntityTracker().sendToTracking(player, sleepPacket);
 		player.connection.sendPacket(sleepPacket);
 	}
 
@@ -206,20 +207,20 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	private static void getOutOfSleepingBag(EntityPlayer player) {
-		ItemStack stack = player.inventory.armorInventory[CHESTPIECE_SLOT];
-		if (stack != null && stack.getItem() == SleepingBag.sleepingBag) {
+		ItemStack stack = player.inventory.armorInventory.get(CHESTPIECE_SLOT);
+		if (!stack.isEmpty() && stack.getItem() == SleepingBag.sleepingBag) {
 			if (!tryReturnToSlot(player, stack)) {
 				if (!player.inventory.addItemStackToInventory(stack)) {
 					float f = 0.7f;
-					float d0 = player.worldObj.rand.nextFloat() * f + (1 - f) * 0.5f;
-					float d1 = player.worldObj.rand.nextFloat() * f + (1 - f) * 0.5f;
-					float d2 = player.worldObj.rand.nextFloat() * f + (1 - f) * 0.5f;
-					EntityItem item = new EntityItem(player.worldObj, player.posX + d0, player.posY + d1, player.posZ + d2, stack);
+					float d0 = player.world.rand.nextFloat() * f + (1 - f) * 0.5f;
+					float d1 = player.world.rand.nextFloat() * f + (1 - f) * 0.5f;
+					float d2 = player.world.rand.nextFloat() * f + (1 - f) * 0.5f;
+					EntityItem item = new EntityItem(player.world, player.posX + d0, player.posY + d1, player.posZ + d2, stack);
 					item.setDefaultPickupDelay();
 					if (stack.hasTagCompound()) {
-						item.getEntityItem().setTagCompound((NBTTagCompound)stack.getTagCompound().copy());
+						item.getEntityItem().setTagCompound(stack.getTagCompound().copy());
 					}
-					player.worldObj.spawnEntityInWorld(item);
+					player.world.spawnEntity(item);
 				}
 			}
 		}
@@ -232,20 +233,20 @@ public class ItemSleepingBag extends ItemArmor {
 
 		ItemStack possiblyArmor;
 		if (returnSlot == OFF_HAND) {
-			possiblyArmor = player.inventory.offHandInventory[0];
+			possiblyArmor = player.inventory.offHandInventory.get(0);
 		} else {
 			possiblyArmor = player.inventory.getStackInSlot(returnSlot);
 		}
 
 		if (isChestplateOrElytra(possiblyArmor)) {
-			player.inventory.armorInventory[CHESTPIECE_SLOT] = possiblyArmor;
+			player.inventory.armorInventory.set(CHESTPIECE_SLOT, possiblyArmor);
 		} else {
-			player.inventory.armorInventory[CHESTPIECE_SLOT] = null;
-			if (possiblyArmor != null) return false;
+			player.inventory.armorInventory.set(CHESTPIECE_SLOT, ItemStack.EMPTY);
+			if (!possiblyArmor.isEmpty()) return false;
 		}
 
 		if (returnSlot == OFF_HAND) {
-			player.inventory.offHandInventory[0] = stack;
+			player.inventory.offHandInventory.set(0, stack);
 		} else {
 			player.inventory.setInventorySlotContents(returnSlot, stack);
 		}
@@ -266,7 +267,7 @@ public class ItemSleepingBag extends ItemArmor {
 	}
 
 	private static void storeOriginalSpawn(EntityPlayer player, NBTTagCompound tag) {
-		BlockPos pos = player.getBedLocation(player.worldObj.provider.getDimension());
+		BlockPos pos = player.getBedLocation(player.world.provider.getDimension());
 		if (pos != null) {
 			tag.setLong(TAG_SPAWN, pos.toLong());
 		}
@@ -275,7 +276,7 @@ public class ItemSleepingBag extends ItemArmor {
 	private static void restoreOriginalSpawn(EntityPlayer player, NBTTagCompound tag) {
 		if (tag.hasKey(TAG_SPAWN)) {
 			BlockPos pos = BlockPos.fromLong(tag.getLong(TAG_SPAWN));
-			player.setSpawnChunk(pos, false, player.worldObj.provider.getDimension());
+			player.setSpawnChunk(pos, false, player.world.provider.getDimension());
 			tag.removeTag(TAG_SPAWN);
 		}
 	}
@@ -298,7 +299,7 @@ public class ItemSleepingBag extends ItemArmor {
 
 
 	public static boolean isWearingSleepingBag(EntityPlayer player) {
-		ItemStack armor = player.inventory.armorInventory[CHESTPIECE_SLOT];
-		return armor != null && armor.getItem() == SleepingBag.sleepingBag;
+		ItemStack armor = player.inventory.armorInventory.get(CHESTPIECE_SLOT);
+		return !armor.isEmpty() && armor.getItem() == SleepingBag.sleepingBag;
 	}
 }

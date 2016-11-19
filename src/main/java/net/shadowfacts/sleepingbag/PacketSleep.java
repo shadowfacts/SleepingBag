@@ -20,14 +20,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PacketSleep extends PacketBase<PacketSleep, IMessage> {
 
-	static {
-		addHandlers(UUID.class, buf -> new UUID(buf.readLong(), buf.readLong()), (val, buf) -> {
-			buf.writeLong(val.getMostSignificantBits());
-			buf.writeLong(val.getLeastSignificantBits());
-		});
-		addHandlers(EnumHand.class, buf -> buf.readBoolean() ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND, (val, buf) -> buf.writeBoolean(val == EnumHand.MAIN_HAND));
-	}
-
 	public UUID id;
 	public int dimension;
 	public BlockPos pos;

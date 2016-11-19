@@ -1,9 +1,11 @@
 package net.shadowfacts.sleepingbag;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
 import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -19,7 +21,7 @@ public class EventHandler {
 	public void onPlayerRightClickAir(PlayerInteractEvent.RightClickEmpty event) {
 		ItemStack offHand = event.getEntityPlayer().getHeldItemOffhand();
 		ItemStack mainHand = event.getEntityPlayer().getHeldItemMainhand();
-		EnumHand hand = offHand != null && offHand.getItem() == SleepingBag.sleepingBag ? EnumHand.OFF_HAND : mainHand != null && mainHand.getItem() == SleepingBag.sleepingBag ? EnumHand.MAIN_HAND : null;
+		EnumHand hand = !offHand.isEmpty() && offHand.getItem() == SleepingBag.sleepingBag ? EnumHand.OFF_HAND : !mainHand.isEmpty() && mainHand.getItem() == SleepingBag.sleepingBag ? EnumHand.MAIN_HAND : null;
 
 		if (hand != null) {
 			UUID uuid = event.getEntityPlayer().getUniqueID();
@@ -33,6 +35,13 @@ public class EventHandler {
 	public void handleSleepLocationCheck(SleepingLocationCheckEvent event) {
 		if (ItemSleepingBag.isWearingSleepingBag(event.getEntityPlayer())) {
 			event.setResult(Event.Result.ALLOW);
+		}
+	}
+
+	@SubscribeEvent
+	public void handleSleepInBed(PlayerSleepInBedEvent event) {
+		if (ItemSleepingBag.isWearingSleepingBag(event.getEntityPlayer())) {
+			event.setResult(EntityPlayer.SleepResult.OK);
 		}
 	}
 

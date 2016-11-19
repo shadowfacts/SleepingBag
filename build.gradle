@@ -62,7 +62,7 @@ curseforge {
 	project {
 		id = "244584"
 
-		addGameVersion "1.10.2"
+		addGameVersion "1.11"
 		addGameVersion "Java 8"
 
 		mainArtifact(jar) {
