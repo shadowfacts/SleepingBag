@@ -142,6 +142,9 @@ public class ItemSleepingBag extends ItemArmor {
 		ObfuscationReflectionHelper.setPrivateValue(EntityPlayer.class, player, true, "sleeping", "field_71083_bS");
 		ObfuscationReflectionHelper.setPrivateValue(EntityPlayer.class, player, 0, "sleepTimer", "field_71076_b");
 
+		AxisAlignedBB box = world.getBlockState(pos).getCollisionBoundingBox(world, pos);
+		if (box == null || box.maxY < 1) pos = pos.up();
+
 		player.bedLocation = pos;
 
 		player.motionX = player.motionZ = player.motionY = 0;
@@ -170,7 +173,7 @@ public class ItemSleepingBag extends ItemArmor {
 	private static boolean canPlayerSleep(EntityPlayer player, World world, BlockPos pos) {
 		if (player.isPlayerSleeping() || !player.isEntityAlive()) return false;
 
-		if (!isNotSuffocating(world, pos) || !isSolidEnough(world, pos.down())) {
+		if (!isSolidEnough(world, pos.down())) {
 			ShadowMC.proxy.sendSpamlessMessage(player, new TextComponentTranslation("sleepingbag.no_ground"), MESSAGE_ID);
 			return false;
 		}
@@ -186,11 +189,6 @@ public class ItemSleepingBag extends ItemArmor {
 		}
 
 		return false;
-	}
-
-	private static boolean isNotSuffocating(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
-		return state.getCollisionBoundingBox(world, pos) == null || state.getBlock().isAir(state, world, pos);
 	}
 
 	private static boolean isSolidEnough(World world, BlockPos pos) {
